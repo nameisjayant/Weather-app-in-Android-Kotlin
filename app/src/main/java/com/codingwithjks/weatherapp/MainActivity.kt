@@ -60,12 +60,13 @@ class MainActivity : AppCompatActivity() {
     {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener, android.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
+                 query?.let { weatherViewModel.setSearchQuery(it) }
+                Log.d("main", "onQueryTextChange: $query")
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                newText?.let { weatherViewModel.setSearchQuery(it) }
-                Log.d("main", "onQueryTextChange: $newText")
+               
                 return true
             }
 
