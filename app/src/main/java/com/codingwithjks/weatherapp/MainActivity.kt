@@ -16,12 +16,16 @@ import com.codingwithjks.weatherapp.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val weatherViewModel:WeatherViewModel by viewModels()
+    @FlowPreview
+    @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding= ActivityMainBinding.inflate(layoutInflater)
@@ -36,16 +40,16 @@ class MainActivity : AppCompatActivity() {
                     .load(R.drawable.clouds)
                     .into(binding.image)
             }else
-            if(response.weather[0].description == "haze" || response.weather[0].description == "overcast clouds" || response.weather[0].description == "fog" ){
-                Glide.with(this)
-                    .load(R.drawable.haze)
-                    .into(binding.image)
-            }else
-                if(response.weather[0].description == "rain"){
+                if(response.weather[0].description == "haze" || response.weather[0].description == "overcast clouds" || response.weather[0].description == "fog" ){
                     Glide.with(this)
-                        .load(R.drawable.rain)
+                        .load(R.drawable.haze)
                         .into(binding.image)
-                }
+                }else
+                    if(response.weather[0].description == "rain"){
+                        Glide.with(this)
+                            .load(R.drawable.rain)
+                            .into(binding.image)
+                    }
             binding.description.text=response.weather[0].description
             binding.name.text=response.name
             binding.degree.text=response.wind.deg.toString()
@@ -56,17 +60,18 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    @ExperimentalCoroutinesApi
     private fun initListener()
     {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener, android.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                 query?.let { weatherViewModel.setSearchQuery(it) }
+                query?.let { weatherViewModel.setSearchQuery(it) }
                 Log.d("main", "onQueryTextChange: $query")
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-               
+
                 return true
             }
 
