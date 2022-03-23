@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -54,7 +55,7 @@ class MainActivity : AppCompatActivity() {
             binding.name.text=response.name
             binding.degree.text=response.wind.deg.toString()
             binding.speed.text=response.wind.speed.toString()
-            binding.temp.text=response.main.temp.toString()
+            binding.temp.text=(((response.main.temp - 273) * 100.0).roundToInt()/100.0).toString()
             binding.humidity.text=response.main.humidity.toString()
 
         })
