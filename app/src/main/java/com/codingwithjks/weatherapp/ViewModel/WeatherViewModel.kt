@@ -6,42 +6,53 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codingwithjks.weatherapp.Model.City
+import com.codingwithjks.weatherapp.Model.Main
+import com.codingwithjks.weatherapp.Model.Weather
+import com.codingwithjks.weatherapp.Model.Wind
 import com.codingwithjks.weatherapp.Repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
+@ExperimentalCoroutinesApi
+@FlowPreview
 @HiltViewModel
-class WeatherViewModel @Inject constructor(private val weatherRepository: WeatherRepository): ViewModel() {
-    val weatherResponse:MutableLiveData<City> = MutableLiveData()
-    @ExperimentalCoroutinesApi
-    private val searchChannel = ConflatedBroadcastChannel<String>()
+class WeatherViewModel @Inject constructor(private val weatherRepository: WeatherRepository) :
+    ViewModel() {
+    private val _weatherResponse: MutableStateFlow<City> = MutableStateFlow(
+        City(
+            listOf(Weather()),
+            Main(),
+            Wind()
+        )
+    )
+    val weatherResponse: StateFlow<City> = _weatherResponse
+    private val searchChannel = MutableSharedFlow<String>(1)
 
-    @ExperimentalCoroutinesApi
-    fun setSearchQuery(search:String)
-    {
-        searchChannel.offer(search)
+
+    fun setSearchQuery(search: String) {
+        searchChannel.tryEmit(search)
     }
 
-    @ExperimentalCoroutinesApi
-    @FlowPreview
-    fun getCityData()
-    {
+    init {
+        getCityData()
+    }
+
+
+    private fun getCityData() {
         viewModelScope.launch {
-            searchChannel.asFlow()
-                .flatMapLatest { search->
+            searchChannel
+                .flatMapLatest { search ->
                     weatherRepository.getCityData(search)
-                }.catch {e->
+                }.catch { e ->
                     Log.d("main", "${e.message}")
-                }.collect { response->
-                    weatherResponse.value=response
+                }.collect { response ->
+                    _weatherResponse.value = response
                 }
         }
     }
